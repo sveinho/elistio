@@ -1,0 +1,709 @@
+/* ==========================================================================
+   1. GLOBAL VARIABLES, RESETS & BASE STYLES
+   ========================================================================== */
+:root {
+  /* Skrifttyper med fokus pC% system- og utviklerverktC8y */
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Applikasjonsfarger - Stramme og nC8ytrale */
+  --bg-app: #f3f3f3;        /* Litt renere, moderne grC%blC% bakgrunn */
+  --bg-card: #ffffff;
+  --text-main: #000000;     /* MC8rkere, mer distinkt tekstfarge */
+  --text-muted: #000000;    /* Balansert nedtonet tekst */
+  --border-color: #e2e8f0;  /* Tydelig, men diskret ramme */
+
+  /* Tema-roller (Rolle-indikasjoner holdes intakt, men flatet ut) */
+  --bg-researcher-badge: #f0447d;
+  --bg-manager-badge: #eab308;
+  --bg-trainer-badge: #14b8a6;
+
+  /* Brytere, merkelapper og aksenter */
+  --color-tag-active: #fef08a; /* MC8rk, autoritC&r farge for aktive valg */
+  --bg-switch-off: #fef08a;
+  --bg-switch-on: #cbd5e1;
+  
+  /* System-tokens (OKF bruker flate rammer fremfor skygger for dokumentfC8lelse) */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.6;
+  padding-bottom: 60px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Hjelpeklasser for synlighet */
+.hidden {
+  display: none !important;
+}
+
+.invisible {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ==========================================================================
+   2. SYSTEM LAYOUT STRUCTURE
+   ========================================================================== */
+.layout-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 40px;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.control-panel {
+  position: sticky;
+  top: 40px;
+  height: fit-content;
+  width: 100%;
+}
+
+.content-container {
+  width: 100%;
+  min-width: 0; /* Forhindrer at brede kodeblokker sprenger griddet */
+}
+
+@media (max-width: 768px) {
+  .layout-container {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 24px 16px;
+  }
+  .control-panel {
+    position: static;
+  }
+}
+
+/* ==========================================================================
+   3. HEADER ARCHITECTURE
+   ========================================================================== */
+.main-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.header-container h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.header-container p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+/* ==========================================================================
+   4. SEARCH FACET
+   ========================================================================== */
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 12px 40px 12px 14px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  border: 1px solid var(--border-color);
+  border-radius: 6px; /* Strammere hjC8rner for en mer teknisk dokumentfC8lelse */
+  background: var(--bg-card);
+  color: var(--text-main);
+  transition: border-color 0.15s var(--ease-out), background-color 0.15s var(--ease-out);
+}
+
+/* Aktivt sC8kefelt med en subtil, profesjonell pastelltone og mC8rk tekst */
+#searchInput.active-search {
+  background-color: #f0fdf4; /* SvC&rt lys pastellgrC8nn/blC% tone */
+  border-color: var(--color-tag-active);
+  color: var(--text-main);
+}
+
+#searchInput:focus {
+  outline: none;
+  border-color: var(--color-tag-active);
+  background-color: var(--bg-card);
+}
+
+#resetSearchBtn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#resetSearchBtn:hover {
+  color: var(--text-main);
+}
+
+.search-counter {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-family: var(--font-mono); /* Monospace-tall gir et mer presist uttrykk */
+}
+
+/* ==========================================================================
+   5. PRIMARY FILTER CATEGORIES (FACETS) - OPPDATERT FORSLAG 2
+   ========================================================================== */
+.filter-buttons-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-btn {
+  padding: 8px 4px;
+  font-size: 0.95rem;
+  background-color: #f0fdf4;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 3px solid transparent; /* Usynlig linje som standard for C% unngC% hopping */
+  border-radius: 0px; /* Helt rette linjer for fane-estetikk */
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.filter-btn:hover {
+  color: var(--text-main);
+  border-bottom-color: var(--border-color); /* Subtil linje ved hover */
+}
+
+/* Aktive tilstander: NC8ytral knapp, men med tydelig farget underlinje */
+.filter-btn[data-track="all"].active {
+  border-bottom-color: var(--text-main);
+  color: var(--text-main);
+  background: transparent;
+}
+
+.filter-btn[data-track="researchers"].active {
+  border-bottom-color: var(--bg-researcher-badge);
+  color: var(--text-main);
+  background: transparent;
+}
+
+.filter-btn[data-track="managers"].active {
+  border-bottom-color: var(--bg-manager-badge);
+  color: var(--text-main);
+  background: transparent;
+}
+
+.filter-btn[data-track="trainers"].active {
+  border-bottom-color: var(--bg-trainer-badge);
+  color: var(--text-main);
+  background: transparent;
+}
+
+/* ==========================================================================
+   6. VISIBILITY TOGGLE SWITCH SYSTEM
+   ========================================================================== */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.toggle-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.switch-track {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.switch-track input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--bg-switch-off);
+  transition: background-color 0.15s var(--ease-out);
+  border-radius: 9999px;
+}
+
+.switch-slider::before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: transform 0.15s var(--ease-out);
+  border-radius: 50%;
+}
+
+.switch-track input:checked + .switch-slider {
+  background-color: var(--bg-switch-on);
+}
+
+.switch-track input:checked + .switch-slider::before {
+  transform: translateX(20px);
+}
+
+.switch-track input:focus-visible + .switch-slider {
+  outline: 2px solid var(--color-tag-active);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   7. TAG CLOUD CLUSTER
+   ========================================================================== */
+.global-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+  max-height: 500px;
+  opacity: 1;
+  visibility: visible;
+  transition: max-height 0.2s var(--ease-out), opacity 0.15s ease, margin 0.15s;
+  overflow: hidden;
+}
+
+.global-tag-cloud.hidden {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  margin-top: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+.global-tag-btn {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 4px; /* Ren, rektangulC&r tag-estetikk */
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  transition: background-color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.global-tag-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.global-tag-btn.active {
+  background: var(--color-tag-active);
+  border-color: var(--color-tag-active);
+  color: #fff;
+}
+/* ==========================================================================
+   8. FILTERABLE ARTICLE CARDS - OPPDATERT FORSLAG 2
+   ========================================================================== */
+.modules-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 10px;
+}
+
+article.filterable {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-top: 3px solid #cbd5e1; /* Flyttet fargestripe til toppen som standard */
+  border-radius: 6px; 
+  padding: 28px;
+  cursor: text;
+  transition: background-color 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+}
+
+article.filterable:not(:has(.full-content)):hover {
+  background-color: #f8fafc; /* Subtil bakgrunnsendring ved hover */
+  border-color: #cbd5e1;     /* Rammen blir litt mC8rkere grC% */
+}
+
+/* Sikrer at en C%pen modul beholder sin faste, nC8ytrale bakgrunn uansett muspeker */
+article.filterable:has(.full-content) {
+  background-color: var(--bg-card); /* Forblir helt hvit/standard */
+  border-color: var(--border-color);
+  cursor: default; /* Endrer muspekeren fra 'hC%nd' til vanlig pil for bedre dokumentfC8lelse */
+}
+
+.article-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .article-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.article-header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.article-title-clickable:hover {
+  color: var(--color-tag-active);
+  text-decoration: underline;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 4px; /* Strammere badges */
+  background: #f1f5f9;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+.tag-click-btn {
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.tag-click-btn:hover {
+  background: #e2e8f0;
+  color: var(--text-main);
+}
+
+.tag-click-btn.active {
+  background: var(--color-tag-active);
+  border-color: var(--color-tag-active);
+  color: #fff;
+}
+
+article.filterable[data-track="researchers"] { border-left: 1px solid var(--border-color); border-top-color: var(--bg-researcher-badge); }
+article.filterable[data-track="managers"]    { border-left: 1px solid var(--border-color); border-top-color: var(--bg-manager-badge); }
+article.filterable[data-track="trainers"]    { border-left: 1px solid var(--border-color); border-top-color: var(--bg-trainer-badge); }
+
+/* Beholder disiplin-badges intakt, men sikrer god kontrast */
+article.filterable[data-track="researchers"] .discipline-badge { background: #fff1f2; color: var(--bg-researcher-badge); border-color: #fecdd3; }
+article.filterable[data-track="managers"] .discipline-badge { background: #fef9c3; color: #a16207; border-color: #fef08a; }
+article.filterable[data-track="trainers"] .discipline-badge { background: #ccfbf1; color: #0d9488; border-color: #99f6e4; }
+
+.abstract-text {
+  color: #334155;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+mark {
+  background: #fef08a; /* Behagelig pastellgul highlight */
+  color: #854d0e;
+  padding: 0 2px;
+  margin: 0;
+  border-radius: 2px;
+  display: inline;
+}
+.discipline-badge {
+  background: var(--bg-card) !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: background-color 0.15s var(--ease-out), color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+/* Tydelig men nC8ytral hover-tilstand */
+.discipline-badge:hover {
+  background: #f1f5f9 !important;
+  color: var(--text-main) !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* ==========================================================================
+   9. ACTIONS AREA & FOOTER UTILITIES
+   ========================================================================== */
+.learning-path-actions {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.next-step-btn {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  width: 240px; 
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.next-step-btn:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.share-btn,
+.close-article-btn {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.share-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.close-article-btn {
+  color: #dc2626;
+  border-color: #fecaa3;
+  background: #fff5f5;
+}
+
+.close-article-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.article-tags-bottom {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.article-tags-bottom .badge {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+}
+
+/* ==========================================================================
+   10. MARKDOWN TYPOGRAPHY, TABLES & CODE RESTORATION
+   ========================================================================== */
+.markdown-body {
+  line-height: 1.6;
+  color: #334155;
+}
+
+.markdown-body p {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.markdown-body h1 { font-size: 1.6rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+.markdown-body h2 { font-size: 1.35rem; }
+.markdown-body h3 { font-size: 1.15rem; }
+
+.markdown-body > *:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+.markdown-body li {
+  margin-bottom: 0.4rem;
+}
+
+/* Tabeller i ekte OKF-stil */
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.markdown-body th,
+.markdown-body td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.markdown-body th {
+  font-weight: 700;
+  background-color: #f8fafc;
+  color: var(--text-main);
+  border-top: 1px solid var(--border-color);
+}
+
+.markdown-body tr:nth-child(even) {
+  background-color: #fdfdfd;
+}
+
+/* Inline kode-elementer (f.eks `order_id`) */
+.markdown-body code {
+  font-family: var(--font-mono);
+  background-color: #f1f5f9;
+  color: #0f172a;
+  padding: 0.2em 0.4em;
+  font-size: 85%;
+  border-radius: 4px;
+}
+
+/* Store, profesjonelle mC8rke kodeblokker */
+.markdown-body pre {
+  padding: 1.25rem;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+  background-color: #0f172a; /* MC8rk kontrastfarge for kode */
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+}
+
+/* Nullstill inline-stiler inni store kodeblokker */
+.markdown-body pre code {
+  background-color: transparent;
+  color: #e2e8f0;
+  padding: 0;
+  font-size: 0.85rem;
+  border-radius: 0;
+}
+
+/* ==========================================================================
+   11. SMOOTH CONTENT EXPANSION ANIMATION & PAGINATION
+   ========================================================================== */
+@keyframes fadeInContent {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.full-content {
+  animation: fadeInContent 0.2s var(--ease-out) forwards;
+  will-change: opacity, transform;
+}
+
+.pagination-bar {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  width: 100%;
+  margin-top: 40px;
+  padding: 20px 0;
+}
+
+.primary-btn {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  width: 240px; 
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.primary-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+/* Stilen som gjC8r at tags lyser opp som sC8keforslag */
+.global-tag-btn.tag-suggestion-highlight {
+  background-color: #fef08a !important; /* Lys gul bakgrunn */
+  border-color: #eab308 !important;     /* Gyllen ramme */
+  color: #854d0e !important;          /* GjC8re den C8rlite stC8rre */
+  transition: all 0.2s ease;
+}
