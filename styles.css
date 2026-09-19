@@ -404,7 +404,6 @@ article.filterable:has(.full-content) {
 }
 
 .article-title-clickable:hover {
-  color: var(--color-tag-active);
   text-decoration: underline;
 }
 
