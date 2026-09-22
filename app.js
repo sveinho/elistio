@@ -291,9 +291,8 @@ class KitApp {
     
     const articleTags = article.keywords || article.tags || [];
     const tagsHtml = articleTags.map((tag) => {
-      const activeCls = tag === this._state.tagFilter ? ' active' : '';
       const tagHtml = this._highlight(tag, words);
-      return `<button class="badge tag-click-btn${activeCls}" data-tag="${this._escapeHtml(tag)}">#${tagHtml}</button>`;
+      return `<button class="badge tag-click-btn" data-tag="${this._escapeHtml(tag)}">#${tagHtml}</button>`;
     }).join(' ');
 
     let expandedHtml = '';
