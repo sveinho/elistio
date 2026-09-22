@@ -420,21 +420,6 @@ article.filterable:has(.full-content) {
   border: 1px solid var(--border-color);
 }
 
-.tag-click-btn {
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.tag-click-btn:hover {
-  background: #e2e8f0;
-  color: var(--text-main);
-}
-
-.tag-click-btn.active {
-  background: var(--color-tag-active);
-  border-color: var(--color-tag-active);
-  color: #fff;
-}
 
 article.filterable[data-track="researchers"] { border-left: 1px solid var(--border-color); border-top-color: var(--bg-researcher-badge); }
 article.filterable[data-track="managers"]    { border-left: 1px solid var(--border-color); border-top-color: var(--bg-manager-badge); }
