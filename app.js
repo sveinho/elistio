@@ -66,7 +66,6 @@ class KitApp {
       query: '',
       activeId: null,
       trackFilter: 'all',
-      tagFilter: null,
       displayed: CONFIG.itemsPerPage,
     };
 
@@ -143,8 +142,6 @@ class KitApp {
     const query = url.searchParams.get('q'); 
 
     this._state.trackFilter = track || 'all';
-    
-    // SAMMENKOBLING: Bruk eksisterende søkespørring, eller fyll inn aktiv tag som et søketips
     this._state.query = query || tag || ''; 
     
     if (this._refs.searchInput) {
@@ -158,17 +155,15 @@ class KitApp {
 
     if (id && this._state.all.some((a) => a["@id"] === id)) {
       this._state.activeId = id;
-      this._state.tagFilter = null;
       this._filter(false);
       requestAnimationFrame(() => this._scrollToAnchor(url.hash));
     } else {
       this._state.activeId = null;
-      this._state.tagFilter = tag;
       this._filter(true);
     }
 
     this._renderGlobalTagCloud();
-    this._highlightMatchingTags(); // Oppdaterer hvilke tags som skal lyse opp
+    this._highlightMatchingTags();
     this._syncResetButton();
   }
 
@@ -193,14 +188,13 @@ class KitApp {
   _filter(resetPagination = false) {
     const words = this._state.query.split(/\s+/).filter(Boolean);
     const isSearching = words.length > 0;
-    const { trackFilter, tagFilter, all } = this._state;
+    const { trackFilter, all } = this._state;
 
     let result = all.filter((a) => {
       const articleTags = a.keywords || a.tags;
       const articleTrack = a.track;
 
       if (trackFilter !== 'all' && articleTrack !== trackFilter) return false;
-      if (tagFilter && !articleTags?.includes(tagFilter)) return false;
       if (!isSearching) return true;
 
       const currentName = a.name || a.title || '';
@@ -222,27 +216,15 @@ class KitApp {
       });
     });
 
-    if (isSearching) {
-      const firstWordString = words[0] || '';
-      const scoreOf = (title) => {
-        const t = (title || '').toLowerCase().trim();
-        const c = firstWordString.replace(/^\./, '');
-        if (t === firstWordString || t === c) return 3;
-        if (t.startsWith(firstWordString) || t.startsWith(c)) return 2;
-        return 1;
-      };
-      result.sort((a, b) => scoreOf(b.name || b.title) - scoreOf(a.name || a.title) || (a.name || a.title || '').localeCompare(b.name || b.title || ''));
-    } else {
-      result.sort((a, b) => {
-        const ta = a.track;
-        const tb = b.track;
-        if (ta !== tb) return ta.localeCompare(tb);
-        
-        const orderA = parseInt(a.order || 0, 10);
-        const orderB = parseInt(b.order || 0, 10);
-        return orderA - orderB;
-      });
-    }
+    result.sort((a, b) => {
+      const ta = a.track || '';
+      const tb = b.track || '';
+      if (ta !== tb) return ta.localeCompare(tb);
+      
+      const orderA = parseInt(a.order || 0, 10);
+      const orderB = parseInt(b.order || 0, 10);
+      return orderA - orderB;
+    });
 
     this._state.filtered = result;
     if (resetPagination) this._state.displayed = CONFIG.itemsPerPage;
@@ -396,16 +378,14 @@ class KitApp {
       return;
     }
 
-      cloud.innerHTML = Array.from(tags)
+    cloud.innerHTML = Array.from(tags)
       .sort()
       .map((tag) => {
         return `<button class="global-tag-btn" data-tag="${this._escapeHtml(tag)}">#${this._escapeHtml(tag)}</button>`;
       })
       .join(' ');
-
   }
 
-  // NY METODE: Skanner skyen og legger til en CSS-fremheving på matchende tags som tips til brukeren
   _highlightMatchingTags() {
     const query = this._state.query.trim().toLowerCase();
     const tagButtons = this._refs.globalTagCloud?.querySelectorAll('.global-tag-btn');
@@ -413,7 +393,6 @@ class KitApp {
 
     tagButtons.forEach(btn => {
       const tagText = btn.dataset.tag.toLowerCase();
-      // Hvis brukeren har tastet inn minst 2 tegn og taggen inneholder søkeordet
       if (query.length >= 2 && tagText.includes(query)) {
         btn.classList.add('tag-suggestion-highlight');
       } else {
@@ -424,14 +403,13 @@ class KitApp {
 
   _updateSearchUI() {
     const { searchCounter, noResults } = this._refs;
-    const { filtered, query, tagFilter } = this._state;
+    const { filtered, query } = this._state;
     const isSearching = query.length > 0;
-    const tagNotice = tagFilter ? ` filtered by #${tagFilter}` : '';
 
     if (searchCounter) {
       searchCounter.textContent = isSearching
-        ? `Found ${filtered.length} matching steps sorted by relevance${tagNotice}`
-        : `Track index loaded. Total modules available: ${filtered.length}${tagNotice}`;
+        ? `Found ${filtered.length} matching steps sorted logically`
+        : `Track index loaded. Total modules available: ${filtered.length}`;
     }
     noResults?.classList.toggle('hidden', filtered.length > 0);
   }
@@ -455,35 +433,22 @@ class KitApp {
     if (this._state.trackFilter && this._state.trackFilter !== 'all') {
       targetParams.track = this._state.trackFilter;
     }
-    if (this._state.tagFilter) targetParams.tag = this._state.tagFilter;
     if (this._state.query) targetParams.q = this._state.query;
     if (this._state.activeId) targetParams.id = this._state.activeId;
     
     this._syncUrl(targetParams);
-    this._highlightMatchingTags(); // Utløser belysning av tags ved søkeskriving
+    this._highlightMatchingTags();
   }
 
   _setTrackFilter(track, activeBtn) {
     this._state.trackFilter = track;
     this._filterButtons.forEach((b) => b.classList.toggle('active', b === activeBtn));
-    
-    if (this._state.tagFilter && track !== 'all') {
-      const tagStillExists = this._state.all.some((a) => {
-        if (a.track !== track) return false;
-        const tags = a.keywords || a.tags || [];
-        return tags.includes(this._state.tagFilter);
-      });
-      if (!tagStillExists) {
-        this._state.tagFilter = null;
-      }
-    }
 
     const activeArticle = this._state.activeId
       ? this._state.all.find((a) => a["@id"] === this._state.activeId)
       : null;
       
     const targetParams = { track };
-    if (this._state.tagFilter) targetParams.tag = this._state.tagFilter;
     if (this._state.query) targetParams.q = this._state.query;
 
     const currentTrack = activeArticle?.track;
@@ -496,16 +461,13 @@ class KitApp {
     
     this._syncUrl(targetParams);
     this._renderGlobalTagCloud();
-    this._highlightMatchingTags(); // Sikrer rett highlighting etter spor-bytte
+    this._highlightMatchingTags();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-    _toggleTag(tag) {
+  _toggleTag(tag) {
     const isAlreadySearching = this._state.query === tag.toLowerCase();
     const newQuery = isAlreadySearching ? '' : tag;
-
-    // Setter tagFilter til null så appen aldri gjør streng tag-filtrering
-    this._state.tagFilter = null; 
     
     if (this._refs.searchInput) {
       this._refs.searchInput.value = newQuery;
@@ -524,7 +486,33 @@ class KitApp {
     this._renderGlobalTagCloud();
     this._highlightMatchingTags();
   }
+  async _selectModule(id, hash = '') {
+    if (this._state.activeId === id) {
+      this._closeActive();
+      return;
+    }
+    this._state.activeId = id;
+    
+    const targetParams = { id };
+    if (this._state.trackFilter && this._state.trackFilter !== 'all') {
+      targetParams.track = this._state.trackFilter;
+    }
+    if (this._state.query) targetParams.q = this._state.query;
+    
+    this._syncUrl(targetParams, hash);
+    this._scrollToAnchor(hash || location.hash);
+  }
 
+  _closeActive() {
+    this._state.activeId = null;
+    const targetParams = {};
+    if (this._state.trackFilter && this._state.trackFilter !== 'all') {
+      targetParams.track = this._state.trackFilter;
+    }
+    if (this._state.query) targetParams.q = this._state.query;
+    
+    this._syncUrl(targetParams);
+  }
 
   _reset() {
     this._state.query = '';
@@ -533,7 +521,6 @@ class KitApp {
       this._refs.searchInput.classList.remove('active-search');
     }
     this._state.activeId = null;
-    this._state.tagFilter = null;
     
     const targetParams = {};
     if (this._state.trackFilter && this._state.trackFilter !== 'all') {
@@ -606,7 +593,6 @@ class KitApp {
       if (this._state.trackFilter && this._state.trackFilter !== 'all') {
         targetParams.track = this._state.trackFilter;
       }
-      if (this._state.tagFilter) targetParams.tag = this._state.tagFilter;
       if (this._state.query) targetParams.q = this._state.query;
       
       this._syncUrl(targetParams, href);
@@ -633,7 +619,7 @@ class KitApp {
 
     if (url.pathname.endsWith('.json')) {
       event.preventDefault();
-      const fileId = url.pathname.split('/').pop().replace(/\.json$/, '');
+      const fileId = url.pathname.split('/').pop().replace(/\.json\$/, '');
       this._selectModule(fileId, hash);
       return;
     }
@@ -642,14 +628,14 @@ class KitApp {
   _scrollToAnchor(rawHash = '') {
     const hash = rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
     const expanded = this._refs.articlesContainer?.querySelector(
-      `[data-id="${this._state.activeId}"]`
+      `[data-id="\${this._state.activeId}"]`
     );
     if (!expanded) return;
 
     if (hash) {
       let target = document.getElementById(hash);
       if (!target && this._state.activeId) {
-        target = document.getElementById(`${this._state.activeId}--${hash}`);
+        target = document.getElementById(`\({this._state.activeId}--\){hash}`);
       }
       if (target && expanded.contains(target)) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -661,86 +647,86 @@ class KitApp {
   }
 
   _createSearchSnippet(textObj, queryWords) {
-  if (!textObj || !queryWords || !queryWords.length) return '';
-  const rawText = typeof textObj === 'object' ? (textObj.text || '') : textObj;
-  if (!rawText) return '';
+    if (!textObj || !queryWords || !queryWords.length) return '';
+    const rawText = typeof textObj === 'object' ? (textObj.text || '') : textObj;
+    if (!rawText) return '';
 
-  const lowerRawText = rawText.toLowerCase();
-  const firstWord = queryWords[0] || '';
-  if (!firstWord) return '';
+    const lowerRawText = rawText.toLowerCase();
+    const firstWord = queryWords[0] || '';
+    if (!firstWord) return '';
 
-  const index = lowerRawText.indexOf(firstWord.toLowerCase());
-  if (index === -1) return '';
+    const index = lowerRawText.indexOf(firstWord.toLowerCase());
+    if (index === -1) return '';
 
-  let sectionTitle = '';
-  const textBeforeMatch = rawText.slice(0, index);
-  const linesBefore = textBeforeMatch.split('\n');
+    let sectionTitle = '';
+    const textBeforeMatch = rawText.slice(0, index);
+    const linesBefore = textBeforeMatch.split('\n');
 
-  for (let i = linesBefore.length - 1; i >= 0; i--) {
-    const line = linesBefore[i].trim();
-    if (line.startsWith('#')) {
-      sectionTitle = line.replace(/^#+\s*/, '').trim();
-      break;
+    for (let i = linesBefore.length - 1; i >= 0; i--) {
+      const line = linesBefore[i].trim();
+      if (line.startsWith('#')) {
+        sectionTitle = line.replace(/^#+\s*/, '').trim();
+        break;
+      }
+    }
+
+    const cleanText = rawText.replace(/[#*`_\[\]()|]/g, ' ').replace(/\s+/g, ' ');
+    const lowerCleanText = cleanText.toLowerCase();
+    const cleanIndex = lowerCleanText.indexOf(firstWord.toLowerCase());
+
+    const start = Math.max(0, cleanIndex - 150);
+    const end = Math.min(cleanText.length, cleanIndex + 250);
+
+    let snippet = cleanText.slice(start, end).trim();
+    if (start > 0) snippet = '...' + snippet;
+    if (cleanText.length > end) snippet = snippet + '...';
+
+    const highlightedSnippet = this._highlight(snippet, queryWords);
+
+    if (sectionTitle) {
+      const escapedSection = this._escapeHtml(sectionTitle);
+      return `<span class="snippet-section" style="display:block; font-weight:bold; color:#1e3a8a; margin-bottom:4px; font-style:normal;">📌 ${escapedSection}</span>${highlightedSnippet}`;
+    }
+
+    return highlightedSnippet;
+  }
+
+  _getMarkdownRenderer() {
+    if (this._md) return this._md;
+    const ctor = typeof window.markdownit === 'function' ? window.markdownit : null;
+    this._md = ctor ? ctor({ html: true, linkify: true }) : null;
+    return this._md;
+  }
+
+  _escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  _highlight(text, words) {
+    if (!words.length || !text) return this._escapeHtml(text);
+    const safeWords = words
+      .map((w) => w.replace(/^\./, ''))
+      .filter(Boolean)
+      .map((w) => w.replace(/[.*+?^\${}()|\[\]\\]/g, '\\$&'));
+    if (!safeWords.length) return this._escapeHtml(text);
+
+    const escapedText = this._escapeHtml(text);
+    const re = new RegExp(`(${safeWords.join('|')})`, 'gi');
+    return escapedText.replace(re, '<mark>\$1</mark>');
+  }
+
+  _syncResetButton() {
+    const { searchInput, resetBtn } = this._refs;
+    const hasText = searchInput && searchInput.value.trim().length > 0;
+    
+    resetBtn?.classList.toggle('invisible', !hasText);
+    
+    if (searchInput) {
+      searchInput.classList.toggle('active-search', hasText);
     }
   }
-
-  const cleanText = rawText.replace(/[#*`_\[\]()|]/g, ' ').replace(/\s+/g, ' ');
-  const lowerCleanText = cleanText.toLowerCase();
-  const cleanIndex = lowerCleanText.indexOf(firstWord.toLowerCase());
-
-  const start = Math.max(0, cleanIndex - 150);
-  const end = Math.min(cleanText.length, cleanIndex + 250);
-
-  let snippet = cleanText.slice(start, end).trim();
-  if (start > 0) snippet = '...' + snippet;
-  if (cleanText.length > end) snippet = snippet + '...';
-
-  const highlightedSnippet = this._highlight(snippet, queryWords);
-
-  if (sectionTitle) {
-    const escapedSection = this._escapeHtml(sectionTitle);
-    return `<span class="snippet-section" style="display:block; font-weight:bold; color:#1e3a8a; margin-bottom:4px; font-style:normal;">📌 ${escapedSection}</span>${highlightedSnippet}`;
-  }
-
-  return highlightedSnippet;
-}
-
-_getMarkdownRenderer() {
-  if (this._md) return this._md;
-  const ctor = typeof window.markdownit === 'function' ? window.markdownit : null;
-  this._md = ctor ? ctor({ html: true, linkify: true }) : null;
-  return this._md;
-}
-
-_escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = String(str);
-  return div.innerHTML;
-}
-
-_highlight(text, words) {
-  if (!words.length || !text) return this._escapeHtml(text);
-  const safeWords = words
-    .map((w) => w.replace(/^\./, ''))
-    .filter(Boolean)
-    .map((w) => w.replace(/[.*+?^\${}()|\[\]\\]/g, '\\$&'));
-  if (!safeWords.length) return this._escapeHtml(text);
-
-  const escapedText = this._escapeHtml(text);
-  const re = new RegExp(`(${safeWords.join('|')})`, 'gi');
-  return escapedText.replace(re, '<mark>\$1</mark>');
-}
-
-_syncResetButton() {
-  const { searchInput, resetBtn } = this._refs;
-  const hasText = searchInput && searchInput.value.trim().length > 0;
-  
-  resetBtn?.classList.toggle('invisible', !hasText);
-  
-  if (searchInput) {
-    searchInput.classList.toggle('active-search', hasText);
-  }
-}
 }
 
 document.addEventListener('DOMContentLoaded', () => {
