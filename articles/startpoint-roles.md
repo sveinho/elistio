@@ -1,5 +1,5 @@
 
-# Combining resources for digital curation and digital preservation practices 
+# Joint resources for curation and preservation practices 
 
 _Startpoint: A synthesis of Data Curation Network in US and their resources and the Digital Preservation Coalition Handbook_
 
