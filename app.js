@@ -396,13 +396,13 @@ class KitApp {
       return;
     }
 
-    cloud.innerHTML = Array.from(tags)
+      cloud.innerHTML = Array.from(tags)
       .sort()
       .map((tag) => {
-        const active = tag === this._state.tagFilter ? ' active' : '';
-        return `<button class="global-tag-btn${active}" data-tag="${this._escapeHtml(tag)}">#${this._escapeHtml(tag)}</button>`;
+        return `<button class="global-tag-btn" data-tag="${this._escapeHtml(tag)}">#${this._escapeHtml(tag)}</button>`;
       })
       .join(' ');
+
   }
 
   // NY METODE: Skanner skyen og legger til en CSS-fremheving på matchende tags som tips til brukeren
