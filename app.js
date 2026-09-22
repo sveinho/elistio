@@ -501,59 +501,31 @@ class KitApp {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  _toggleTag(tag) {
-    const isActive = this._state.tagFilter === tag;
-    this._state.tagFilter = isActive ? null : tag;
+    _toggleTag(tag) {
+    const isAlreadySearching = this._state.query === tag.toLowerCase();
+    const newQuery = isAlreadySearching ? '' : tag;
+
+    // Setter tagFilter til null så appen aldri gjør streng tag-filtrering
+    this._state.tagFilter = null; 
     
-    // SAMMENKOBLING: Når man velger en tag, fylles søkefeltet automatisk ut med tag-navnet
     if (this._refs.searchInput) {
-      this._refs.searchInput.value = isActive ? '' : tag;
-      this._state.query = isActive ? '' : tag.toLowerCase();
+      this._refs.searchInput.value = newQuery;
+      this._state.query = newQuery.toLowerCase();
     }
 
     const targetParams = {};
     if (this._state.trackFilter && this._state.trackFilter !== 'all') {
       targetParams.track = this._state.trackFilter;
     }
-    if (this._state.tagFilter) targetParams.tag = this._state.tagFilter;
     if (this._state.query) targetParams.q = this._state.query;
     if (this._state.activeId) targetParams.id = this._state.activeId;
     
     this._syncUrl(targetParams);
     this._syncResetButton();
     this._renderGlobalTagCloud();
-    this._highlightMatchingTags(); // Resetter eller aktiverer glød på valgt tag
+    this._highlightMatchingTags();
   }
 
-  async _selectModule(id, hash = '') {
-    if (this._state.activeId === id) {
-      this._closeActive();
-      return;
-    }
-    this._state.activeId = id;
-    
-    const targetParams = { id };
-    if (this._state.trackFilter && this._state.trackFilter !== 'all') {
-      targetParams.track = this._state.trackFilter;
-    }
-    if (this._state.tagFilter) targetParams.tag = this._state.tagFilter;
-    if (this._state.query) targetParams.q = this._state.query;
-    
-    this._syncUrl(targetParams, hash);
-    this._scrollToAnchor(hash || location.hash);
-  }
-
-  _closeActive() {
-    this._state.activeId = null;
-    const targetParams = {};
-    if (this._state.trackFilter && this._state.trackFilter !== 'all') {
-      targetParams.track = this._state.trackFilter;
-    }
-    if (this._state.tagFilter) targetParams.tag = this._state.tagFilter;
-    if (this._state.query) targetParams.q = this._state.query;
-    
-    this._syncUrl(targetParams);
-  }
 
   _reset() {
     this._state.query = '';
