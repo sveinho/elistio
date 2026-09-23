@@ -531,9 +531,25 @@ mark {
   padding-top: 8px;
 }
 
+/* Gjør taggene i bunnen like som .global-tag-btn */
 .article-tags-bottom .badge {
-  font-size: 0.7rem;
-  padding: 4px 8px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 4px; /* Ren, rektangulær tag-estetikk */
+  font-weight: 500;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  text-transform: none; /* Fjerner store bokstaver hvis .badge har det globalt */
+  letter-spacing: normal;
+  transition: background-color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+/* Hover-effekt identisk med tag cloud */
+.article-tags-bottom .badge:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  cursor: pointer; /* Gjør at den oppfører seg som en knapp */
 }
 
 /* ==========================================================================
