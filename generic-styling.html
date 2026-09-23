@@ -131,20 +131,23 @@
                 <button class="filter-btn" data-track="standard">Standards</button>
                 <button class="filter-btn" data-track="workflow">Workflows</button>
         </div>
-
+        
+  <!-- Global Tag Cloud -->
+        <div id="globalTagCloud" class="hidden">   <!-- Vis/skjul emneknagger -->
+            <label style="margin-left: 15px; font-size: 0.9rem; cursor: pointer;">
+                <input type="checkbox" id="tagToggleCheckbox" checked> Show keywords for search
+            </label>
+        </div>
+       
         <!-- Search and clear search -->
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="Search in modules (min. 3 letters)..." autocomplete="off">
             <button id="resetSearchBtn" class="invisible">Clear search</button>
             
-            <!-- Vis/skjul emneknagger -->
-            <label style="margin-left: 15px; font-size: 0.9rem; cursor: pointer;">
-                <input type="checkbox" id="tagToggleCheckbox" checked> Show tag cloud
-            </label>
+         
         </div>
 
-        <!-- Global Tag Cloud -->
-        <div id="globalTagCloud" class="hidden"></div>
+      
     </header>
 
     <main>
