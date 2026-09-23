@@ -14,9 +14,9 @@
   --border-color: #e2e8f0;  /* Tydelig, men diskret ramme */
 
   /* Tema-roller (Rolle-indikasjoner holdes intakt, men flatet ut) */
-  --bg-researcher-badge: #f0447d;
-  --bg-manager-badge: #eab308;
-  --bg-trainer-badge: #14b8a6;
+  --bg-standard-badge: #f0447d;
+  --bg-checklist-badge: #eab308;
+  --bg-template-badge: #14b8a6;
 
   /* Brytere, merkelapper og aksenter */
   --color-tag-active: #fef08a; /* MC8rk, autoritC&r farge for aktive valg */
@@ -216,20 +216,20 @@ button {
   background: transparent;
 }
 
-.filter-btn[data-track="researchers"].active {
-  border-bottom-color: var(--bg-researcher-badge);
+.filter-btn[data-track="standard"].active {
+  border-bottom-color: var(--bg-standard-badge);
   color: var(--text-main);
   background: transparent;
 }
 
-.filter-btn[data-track="managers"].active {
-  border-bottom-color: var(--bg-manager-badge);
+.filter-btn[data-track="checklist"].active {
+  border-bottom-color: var(--bg-checklist-badge);
   color: var(--text-main);
   background: transparent;
 }
 
-.filter-btn[data-track="trainers"].active {
-  border-bottom-color: var(--bg-trainer-badge);
+.filter-btn[data-track="template"].active {
+  border-bottom-color: var(--bg-template-badge);
   color: var(--text-main);
   background: transparent;
 }
@@ -421,14 +421,14 @@ article.filterable:has(.full-content) {
 }
 
 
-article.filterable[data-track="researchers"] { border-left: 1px solid var(--border-color); border-top-color: var(--bg-researcher-badge); }
-article.filterable[data-track="managers"]    { border-left: 1px solid var(--border-color); border-top-color: var(--bg-manager-badge); }
-article.filterable[data-track="trainers"]    { border-left: 1px solid var(--border-color); border-top-color: var(--bg-trainer-badge); }
+article.filterable[data-track="standard"] { border-left: 1px solid var(--border-color); border-top-color: var(--bg-standard-badge); }
+article.filterable[data-track="checklist"]    { border-left: 1px solid var(--border-color); border-top-color: var(--bg-manager-badge); }
+article.filterable[data-track="template"]    { border-left: 1px solid var(--border-color); border-top-color: var(--bg-template-badge); }
 
 /* Beholder disiplin-badges intakt, men sikrer god kontrast */
-article.filterable[data-track="researchers"] .discipline-badge { background: #fff1f2; color: var(--bg-researcher-badge); border-color: #fecdd3; }
-article.filterable[data-track="managers"] .discipline-badge { background: #fef9c3; color: #a16207; border-color: #fef08a; }
-article.filterable[data-track="trainers"] .discipline-badge { background: #ccfbf1; color: #0d9488; border-color: #99f6e4; }
+article.filterable[data-track="standard"] .discipline-badge { background: #fff1f2; color: var(--bg-standard-badge); border-color: #fecdd3; }
+article.filterable[data-track="checklist"] .discipline-badge { background: #fef9c3; color: #a16207; border-color: #fef08a; }
+article.filterable[data-track="template"] .discipline-badge { background: #ccfbf1; color: #0d9488; border-color: #99f6e4; }
 
 .abstract-text {
   color: #334155;
